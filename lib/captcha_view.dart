@@ -1,4 +1,4 @@
-library captcha;
+library captchaView;
 
 import 'dart:math';
 
@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import 'captcha_mask_painter.dart';
 
-class Captcha extends StatelessWidget {
+class CaptchaView extends StatelessWidget {
   final double width, height;
   final Color backgroundColor;
   final String text;
@@ -26,7 +26,7 @@ class Captcha extends StatelessWidget {
 
   Random _random = Random();
 
-  Captcha(
+  CaptchaView(
       {Key key,
       this.width = double.infinity,
       this.height = 40,
@@ -36,7 +36,8 @@ class Captcha extends StatelessWidget {
       this.lineColors,
       this.decoration = const BoxDecoration(
         color: Colors.white,
-      )}) : super(key: key);
+      )})
+      : super(key: key);
 
   static String generateText(
       {int length = 4, bool withNumber = true, bool withLetter = true}) {
