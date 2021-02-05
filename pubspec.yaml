@@ -2,7 +2,7 @@ name: captcha_view
 description: A new Flutter package.
 version: 0.0.1
 author: Oliver Chu
-homepage: https://github.com/oliverchu/captcha
+homepage: https://github.com/oliverchu/captcha_view
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -17,3 +17,6 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
+  assets:
+    - assets/images/ic_puzzle.png
+    - assets/images/ic_verify_bg.jpeg
