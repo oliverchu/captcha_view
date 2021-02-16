@@ -1,6 +1,6 @@
 # captcha_view
 
-适用于Flutter的验证码库，可以随机生成数字或者字母，扭曲，遮盖物等。
+适用于Flutter的验证码插件，可以随机生成数字或者字母，扭曲，遮盖物等。
 
 ```dart
 Captcha(
