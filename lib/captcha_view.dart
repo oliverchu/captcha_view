@@ -34,9 +34,7 @@ class CaptchaView extends StatelessWidget {
       this.style = const TextStyle(fontSize: 18),
       this.text = '',
       this.lineColors,
-      this.decoration = const BoxDecoration(
-        color: Colors.white,
-      )})
+      this.decoration = const BoxDecoration(color: Colors.white)})
       : super(key: key);
 
   static String generateText(
@@ -87,9 +85,8 @@ class CaptchaView extends StatelessWidget {
             children: text.characters.map((e) => _getText(e)).toList(),
           ),
           CustomPaint(
-            size: Size(width, height),
-            painter: CaptchaMaskPainter(lineColors),
-          )
+              size: Size(width, height),
+              painter: CaptchaMaskPainter(lineColors))
         ],
       ),
     );
