@@ -37,7 +37,7 @@ Add `captcha_view` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  captcha_view: ^0.2.0
+  captcha_view: ^1.0.0
 ```
 
 Or run:
