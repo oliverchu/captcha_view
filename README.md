@@ -1,52 +1,206 @@
 # captcha_view
 
-适用于Flutter的验证码插件，可以随机生成数字或者字母，扭曲，遮盖物等。
+[![pub package](https://img.shields.io/pub/v/captcha_view.svg)](https://pub.dev/packages/captcha_view)
+[![likes](https://img.shields.io/pub/likes/captcha_view)](https://pub.dev/packages/captcha_view/score)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+A lightweight and highly customizable Flutter package providing secure human verification widgets, including distorted text captchas and interactive slide-to-verify puzzle captchas.
+
+## Features
+
+- **Text Captcha (`CaptchaView`)**: Generates random letters and digits with character skew/distortion and colorful mask lines to prevent OCR scraping.
+- **Slide-to-Verify Puzzle Captcha (`SlideVerifyView`)**: An interactive drag-and-drop puzzle captcha widget supporting dialog modals, routes, and custom callbacks.
+- **Tap to Refresh**: Native support for tap gestures to regenerate text captchas.
+- **Smart Text Generation**: Support for excluding easily confused characters (`0`, `O`, `1`, `I`, `l`) or supplying a custom character pool.
+- **Extensible Styling**: Fully customizable background colors, container decorations, text styles, line colors, and asset images.
+- **Easy One-Line Dialogs**: Convenient `SlideVerifyView.show(context)` helper method.
+
+---
+
+## Preview
+
+![Screenshot](screenshot/Screenshot_1611307510.png)
+
+---
+
+## Installation
+
+Add `captcha_view` to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  captcha_view: ^0.2.0
+```
+
+Or run:
+
+```bash
+flutter pub add captcha_view
+```
+
+Then import it in your Dart code:
 
 ```dart
-Captcha(
-      {Key key,
-      this.width = double.infinity,
-      this.height = 40,
-      this.backgroundColor = Colors.white,
-      this.style = const TextStyle(fontSize: 18),
-      this.text = '',
-      this.lineColors,
-      this.decoration = const BoxDecoration(
-        color: Colors.white,
-      )}) : super(key: key);
+import 'package:captcha_view/captcha_view.dart';
 ```
 
-Usage:
+---
 
-```
-Captcha(
-    text: Captcha.generateText(length: 10,withLetter: true,withNumber: true),
+## Usage
+
+### 1. Text Captcha (`CaptchaView`)
+
+#### Basic Usage
+
+Generate random characters using `CaptchaView.generateText` and display them:
+
+```dart
+CaptchaView(
+  text: CaptchaView.generateText(length: 6),
 )
 ```
 
+#### Tap to Refresh & Exclude Confusing Characters
+
+Allow users to tap the captcha to refresh the text, while omitting ambiguous characters (`0`, `O`, `1`, `I`, `l`):
+
+```dart
+String captchaText = CaptchaView.generateText(
+  length: 6,
+  excludeSimilar: true,
+);
+
+CaptchaView(
+  text: captchaText,
+  lineColors: CaptchaView.rainbowColors,
+  onTap: () {
+    setState(() {
+      captchaText = CaptchaView.generateText(
+        length: 6,
+        excludeSimilar: true,
+      );
+    });
+  },
+)
 ```
-Captcha(
-  lineColors: null,
-  text: Captcha.generateText(length: 4,withLetter: true,withNumber: true),
-  width: 100,
+
+#### Custom Decoration & Styling
+
+Custom background, rounded corners, border, and line counts:
+
+```dart
+CaptchaView(
+  text: CaptchaView.generateText(length: 4),
+  lineColors: [Colors.blue, Colors.purple, Colors.red],
+  lineCount: 6,
+  width: 200,
+  height: 50,
+  style: const TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 2,
+  ),
   decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(14)
+    color: Colors.grey.shade100,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: Colors.deepPurple.shade200),
   ),
 )
 ```
 
-```
-Captcha(
-  lineColors: Captcha.rainbowColors,
-  text: Captcha.generateText(length: 8,withLetter: true,withNumber: true),
-  width: 300,
-  style: TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.bold
-  ),
-)
+---
+
+### 2. Slide Puzzle Captcha (`SlideVerifyView`)
+
+#### Show as Modal Dialog
+
+Show the verification puzzle inside a pop-up dialog with a single function call:
+
+```dart
+final verified = await SlideVerifyView.show(
+  context,
+  title: 'Security Check',
+  sliderText: 'Slide to complete the puzzle',
+  onSuccess: (elapsedSeconds) {
+    print('Verified in $elapsedSeconds seconds');
+  },
+);
+
+if (verified == true) {
+  // User passed verification
+}
 ```
 
-Screenshot_1611307510.png
-![Screenshot](screenshot/Screenshot_1611307510.png)
+#### Embed as Route or Widget
+
+Push `SlideVerifyView` directly to the navigator stack or embed it inside your own widget tree:
+
+```dart
+final verified = await Navigator.of(context).push<bool>(
+  MaterialPageRoute(
+    builder: (_) => Scaffold(
+      appBar: AppBar(title: const Text('Verify Identity')),
+      body: const Center(
+        child: SlideVerifyView(
+          title: 'Please complete verification',
+          sliderText: 'Drag slider to match the piece',
+        ),
+      ),
+    ),
+  ),
+);
+```
+
+---
+
+## API Reference
+
+### `CaptchaView`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `text` | `String` | `''` | The text to display in the captcha. |
+| `width` | `double` | `double.infinity` | Width of the captcha container. |
+| `height` | `double` | `40` | Height of the captcha container. |
+| `backgroundColor` | `Color` | `Colors.white` | Background color (overridden by `decoration`). |
+| `style` | `TextStyle` | `TextStyle(fontSize: 18)` | Text style used for the captcha characters. |
+| `lineColors` | `List<Color>?` | `null` | Colors for the disturbance lines. Draws no lines if `null`. |
+| `lineCount` | `int` | `5` | Number of mask lines to draw over the text. |
+| `decoration` | `BoxDecoration?` | `null` | Custom container decoration. |
+| `onTap` | `VoidCallback?` | `null` | Callback triggered when the captcha is tapped. |
+
+#### `CaptchaView.generateText()`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `length` | `int` | `4` | Number of characters to generate. |
+| `withNumber` | `bool` | `true` | Include digits (`0-9`). |
+| `withLetter` | `bool` | `true` | Include letters (`A-Z`, `a-z`). |
+| `excludeSimilar` | `bool` | `false` | Exclude confusing characters (`0`, `O`, `o`, `1`, `I`, `l`). |
+| `customAllowedCharacters` | `String?` | `null` | Optional custom character pool string. |
+
+---
+
+### `SlideVerifyView`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `width` | `int` | `300` | Width of the puzzle widget in pixels. |
+| `title` | `String` | `'Please complete the verification'` | Title text at the top header. |
+| `sliderText` | `String` | `'Slide to complete the puzzle'` | Hint text shown on the slider track. |
+| `successTextBuilder` | `String Function(double)?` | `null` | Custom builder for the success overlay message. |
+| `showCloseButton` | `bool` | `true` | Whether to display the close button. |
+| `tolerance` | `double` | `5.0` | Target position accuracy tolerance in logical pixels. |
+| `autoDismiss` | `bool` | `true` | Automatically pop route/dialog on success. |
+| `autoDismissDelay` | `Duration` | `1 second` | Delay before auto-dismissing on success. |
+| `maskImageAsset` | `String` | Package puzzle piece asset | Asset path for the puzzle piece mask. |
+| `bgImageAsset` | `String` | Package background asset | Asset path for the background image. |
+| `onSuccess` | `ValueChanged<double>?` | `null` | Callback invoked when verification passes (passes elapsed seconds). |
+| `onFail` | `VoidCallback?` | `null` | Callback invoked when slider is released in wrong position. |
+| `onClose` | `VoidCallback?` | `null` | Callback invoked when close button is tapped. |
+
+---
+
+## License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.

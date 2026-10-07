@@ -1,12 +1,26 @@
 name: captcha_view
-description: A new Flutter package.
-version: 0.0.1
-author: Oliver Chu
+description: >-
+  A customizable Flutter package providing text captchas with distorted characters
+  and slide-to-verify puzzle captchas.
+version: 0.2.0
 homepage: https://github.com/oliverchu/captcha_view
+repository: https://github.com/oliverchu/captcha_view
+issue_tracker: https://github.com/oliverchu/captcha_view/issues
+
+screenshots:
+  - description: CaptchaView text captcha and SlideVerifyView puzzle slider.
+    path: screenshot/Screenshot_1611307510.png
+
+topics:
+  - captcha
+  - verification
+  - security
+  - puzzle
+  - widget
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.17.0 <2.0.0"
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
@@ -15,8 +29,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^6.0.0
 
 flutter:
   assets:
-    - assets/images/ic_puzzle.png
-    - assets/images/ic_verify_bg.jpeg
+    - assets/images/3.0x/ic_puzzle.png
+    - assets/images/3.0x/ic_verify_bg.jpeg
