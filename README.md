@@ -8,7 +8,7 @@ A lightweight and highly customizable Flutter package providing secure human ver
 
 ## Features
 
-- **Text Captcha (`CaptchaView`)**: Generates random letters and digits with character skew/distortion and colorful mask lines to prevent OCR scraping.
+- **Text Captcha (`CaptchaView`)**: Generates random letters and digits with character skew/distortion and colorful smooth watermark curves to prevent OCR scraping.
 - **Slide-to-Verify Puzzle Captcha (`SlideVerifyView`)**: An interactive drag-and-drop puzzle captcha widget supporting dialog modals, routes, and custom callbacks.
 - **Pure Vector & Programmatic Puzzle Styles (`PuzzleStyle`)**: Generates puzzle shapes dynamically (`puzzle`, `square`, `circle`) without external asset files.
 - **Custom Image Support**: Accepts any `ImageProvider` (NetworkImage, AssetImage, etc.) as the puzzle background.
@@ -17,9 +17,15 @@ A lightweight and highly customizable Flutter package providing secure human ver
 
 ---
 
-## Preview
+## Preview & Effect Showcase
 
-![Screenshot](screenshot/Screenshot_1611307510.png)
+| Overview | Jigsaw Puzzle Style | Square Rounded Style |
+| :---: | :---: | :---: |
+| ![All](screenshot/all.png) | ![Puzzle](screenshot/img_1.png) | ![Square](screenshot/img_2.png) |
+
+| Circle Style | Custom Variation 1 | Custom Variation 2 |
+| :---: | :---: | :---: |
+| ![Circle](screenshot/img_3.png) | ![Style 1](screenshot/img_4.png) | ![Style 2](screenshot/img_5.png) |
 
 ---
 
@@ -92,7 +98,7 @@ Custom background, rounded corners, border, and line counts:
 CaptchaView(
   text: CaptchaView.generateText(length: 4),
   lineColors: [Colors.blue, Colors.purple, Colors.red],
-  lineCount: 6,
+  lineCount: 4,
   width: 200,
   height: 50,
   style: const TextStyle(
@@ -159,6 +165,49 @@ final verified = await Navigator.of(context).push<bool>(
 
 ---
 
+## Puzzle Styles & Parameter Configurations
+
+`SlideVerifyView` provides 3 flexible geometric shape styles via `PuzzleStyle`:
+
+### 1. Jigsaw Puzzle Style (`PuzzleStyle.puzzle`)
+The classic jigsaw puzzle piece shape with convex tabs and concave indentations on its edges.
+
+```dart
+SlideVerifyView(
+  imageProvider: NetworkImage('https://picsum.photos/300/210'),
+  puzzleStyle: PuzzleStyle.puzzle,
+  puzzleStrokeColor: Colors.black87,
+  puzzleStrokeWidth: 1.5,
+  puzzleSize: 40, // Optional custom piece size
+)
+```
+
+### 2. Square Rounded Style (`PuzzleStyle.square`)
+A modern rounded rectangle puzzle piece shape.
+
+```dart
+SlideVerifyView(
+  imageProvider: NetworkImage('https://picsum.photos/300/210'),
+  puzzleStyle: PuzzleStyle.square,
+  puzzleStrokeColor: Colors.blueAccent,
+  puzzleStrokeWidth: 2.0,
+)
+```
+
+### 3. Circle Style (`PuzzleStyle.circle`)
+A clean circular puzzle piece shape.
+
+```dart
+SlideVerifyView(
+  imageProvider: NetworkImage('https://picsum.photos/300/210'),
+  puzzleStyle: PuzzleStyle.circle,
+  puzzleStrokeColor: Colors.deepPurple,
+  puzzleStrokeWidth: 2.0,
+)
+```
+
+---
+
 ## API Reference
 
 ### `CaptchaView`
@@ -171,7 +220,7 @@ final verified = await Navigator.of(context).push<bool>(
 | `backgroundColor` | `Color` | `Colors.white` | Background color (overridden by `decoration`). |
 | `style` | `TextStyle` | `TextStyle(fontSize: 18)` | Text style used for the captcha characters. |
 | `lineColors` | `List<Color>?` | `null` | Colors for the disturbance lines. Draws no lines if `null`. |
-| `lineCount` | `int` | `5` | Number of mask lines to draw over the text. |
+| `lineCount` | `int` | `4` | Number of mask curves to draw over the text. |
 | `decoration` | `BoxDecoration?` | `null` | Custom container decoration. |
 | `onTap` | `VoidCallback?` | `null` | Callback triggered when the captcha is tapped. |
 
@@ -203,7 +252,7 @@ final verified = await Navigator.of(context).push<bool>(
 | `showCloseButton` | `bool` | `true` | Whether to display the close button. |
 | `tolerance` | `double` | `5.0` | Target position accuracy tolerance in logical pixels. |
 | `autoDismiss` | `bool` | `true` | Automatically pop route/dialog on success. |
-| `autoDismissDelay` | `Duration` | `1 second` | Delay before auto-dismissing on success. |
+| `autoDismissDelay` | `Duration` | `1 second` | Duration before auto-dismissing on success. |
 | `onSuccess` | `ValueChanged<double>?` | `null` | Callback invoked when verification passes (passes elapsed seconds). |
 | `onFail` | `VoidCallback?` | `null` | Callback invoked when slider is released in wrong position. |
 | `onClose` | `VoidCallback?` | `null` | Callback invoked when close button is tapped. |

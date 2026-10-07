@@ -9,7 +9,7 @@ issue_tracker: https://github.com/oliverchu/captcha_view/issues
 
 screenshots:
   - description: CaptchaView text captcha and SlideVerifyView puzzle slider.
-    path: screenshot/Screenshot_1611307510.png
+    path: screenshot/all.png
 
 topics:
   - captcha
