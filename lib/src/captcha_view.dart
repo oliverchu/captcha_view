@@ -179,7 +179,11 @@ class CaptchaView extends StatelessWidget {
           ),
           CustomPaint(
             size: Size(width, height),
-            painter: CaptchaMaskPainter(lineColors, lineCount: lineCount),
+            painter: CaptchaMaskPainter(
+              lineColors,
+              lineCount: lineCount,
+              seed: text.hashCode,
+            ),
           ),
         ],
       ),
