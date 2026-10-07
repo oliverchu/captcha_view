@@ -39,7 +39,4 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
 
-flutter:
-  assets:
-    - assets/images/3.0x/ic_puzzle.png
-    - assets/images/3.0x/ic_verify_bg.jpeg
+

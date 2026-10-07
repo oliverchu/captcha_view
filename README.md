@@ -10,9 +10,9 @@ A lightweight and highly customizable Flutter package providing secure human ver
 
 - **Text Captcha (`CaptchaView`)**: Generates random letters and digits with character skew/distortion and colorful mask lines to prevent OCR scraping.
 - **Slide-to-Verify Puzzle Captcha (`SlideVerifyView`)**: An interactive drag-and-drop puzzle captcha widget supporting dialog modals, routes, and custom callbacks.
-- **Tap to Refresh**: Native support for tap gestures to regenerate text captchas.
-- **Smart Text Generation**: Support for excluding easily confused characters (`0`, `O`, `1`, `I`, `l`) or supplying a custom character pool.
-- **Extensible Styling**: Fully customizable background colors, container decorations, text styles, line colors, and asset images.
+- **Pure Vector & Programmatic Puzzle Styles (`PuzzleStyle`)**: Generates puzzle shapes dynamically (`puzzle`, `square`, `circle`) without external asset files.
+- **Custom Image Support**: Accepts any `ImageProvider` (NetworkImage, AssetImage, etc.) as the puzzle background.
+- **Customizable Stroke & Shadow**: Adjustable puzzle piece stroke color, width, and realistic drop shadow.
 - **Easy One-Line Dialogs**: Convenient `SlideVerifyView.show(context)` helper method.
 
 ---
@@ -112,15 +112,19 @@ CaptchaView(
 
 ### 2. Slide Puzzle Captcha (`SlideVerifyView`)
 
-#### Show as Modal Dialog
+#### Show as Modal Dialog with Custom Image & Style
 
-Show the verification puzzle inside a pop-up dialog with a single function call:
+Show the verification puzzle inside a pop-up dialog with custom network images and puzzle styles (`PuzzleStyle.puzzle`, `PuzzleStyle.square`, `PuzzleStyle.circle`):
 
 ```dart
 final verified = await SlideVerifyView.show(
   context,
   title: 'Security Check',
   sliderText: 'Slide to complete the puzzle',
+  imageProvider: const NetworkImage('https://picsum.photos/300/210'),
+  puzzleStyle: PuzzleStyle.puzzle,
+  puzzleStrokeColor: Colors.black54,
+  puzzleStrokeWidth: 1.5,
   onSuccess: (elapsedSeconds) {
     print('Verified in $elapsedSeconds seconds');
   },
@@ -140,10 +144,12 @@ final verified = await Navigator.of(context).push<bool>(
   MaterialPageRoute(
     builder: (_) => Scaffold(
       appBar: AppBar(title: const Text('Verify Identity')),
-      body: const Center(
+      body: Center(
         child: SlideVerifyView(
           title: 'Please complete verification',
           sliderText: 'Drag slider to match the piece',
+          imageProvider: const NetworkImage('https://picsum.photos/300/210'),
+          puzzleStyle: PuzzleStyle.square,
         ),
       ),
     ),
@@ -185,16 +191,19 @@ final verified = await Navigator.of(context).push<bool>(
 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
+| `imageProvider` | `ImageProvider` | *(required)* | Background image provider (e.g. `NetworkImage`). |
 | `width` | `int` | `300` | Width of the puzzle widget in pixels. |
 | `title` | `String` | `'Please complete the verification'` | Title text at the top header. |
 | `sliderText` | `String` | `'Slide to complete the puzzle'` | Hint text shown on the slider track. |
+| `puzzleStyle` | `PuzzleStyle` | `PuzzleStyle.puzzle` | Shape style (`puzzle`, `square`, `circle`). |
+| `puzzleSize` | `int?` | `null` | Size of the puzzle piece in logical pixels. |
+| `puzzleStrokeColor` | `Color` | `Colors.black` | Stroke color around the puzzle piece. |
+| `puzzleStrokeWidth` | `double` | `1.5` | Stroke width around the puzzle piece. |
 | `successTextBuilder` | `String Function(double)?` | `null` | Custom builder for the success overlay message. |
 | `showCloseButton` | `bool` | `true` | Whether to display the close button. |
 | `tolerance` | `double` | `5.0` | Target position accuracy tolerance in logical pixels. |
 | `autoDismiss` | `bool` | `true` | Automatically pop route/dialog on success. |
 | `autoDismissDelay` | `Duration` | `1 second` | Delay before auto-dismissing on success. |
-| `maskImageAsset` | `String` | Package puzzle piece asset | Asset path for the puzzle piece mask. |
-| `bgImageAsset` | `String` | Package background asset | Asset path for the background image. |
 | `onSuccess` | `ValueChanged<double>?` | `null` | Callback invoked when verification passes (passes elapsed seconds). |
 | `onFail` | `VoidCallback?` | `null` | Callback invoked when slider is released in wrong position. |
 | `onClose` | `VoidCallback?` | `null` | Callback invoked when close button is tapped. |

@@ -4,7 +4,18 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+/// The style/shape of the slide puzzle piece.
+enum PuzzleStyle {
+  /// Standard jigsaw puzzle piece with tabs (bumps and indentations).
+  puzzle,
+
+  /// Square/rectangle shape with rounded corners.
+  square,
+
+  /// Circular shape.
+  circle,
+}
 
 /// Called when the slider position changes or the user releases the slider.
 ///
@@ -15,9 +26,6 @@ import 'package:flutter/services.dart';
 /// back to the start.
 typedef SliderUpdateCallback = bool Function(double progress, bool released);
 
-/// The loaded puzzle assets and the random target offset of the puzzle piece.
-typedef PuzzleAssets = (ui.Image mask, ui.Image image, Offset offset);
-
 /// A slide-to-verify puzzle captcha widget.
 ///
 /// Displays a background image with a missing puzzle piece. The user must
@@ -27,7 +35,11 @@ typedef PuzzleAssets = (ui.Image mask, ui.Image image, Offset offset);
 /// Can be pushed as a route, embedded in a layout, or shown using [SlideVerifyView.show]:
 ///
 /// ```dart
-/// final verified = await SlideVerifyView.show(context);
+/// final verified = await SlideVerifyView.show(
+///   context,
+///   imageProvider: NetworkImage('https://picsum.photos/300/210'),
+///   puzzleStyle: PuzzleStyle.puzzle,
+/// );
 /// if (verified == true) {
 ///   // Verification succeeded!
 /// }
@@ -44,8 +56,11 @@ class SlideVerifyView extends StatefulWidget {
     this.tolerance = 5.0,
     this.autoDismiss = true,
     this.autoDismissDelay = const Duration(seconds: 1),
-    this.maskImageAsset = 'packages/captcha_view/assets/images/3.0x/ic_puzzle.png',
-    this.bgImageAsset = 'packages/captcha_view/assets/images/3.0x/ic_verify_bg.jpeg',
+    required this.imageProvider,
+    this.puzzleStyle = PuzzleStyle.puzzle,
+    this.puzzleSize,
+    this.puzzleStrokeColor = Colors.black,
+    this.puzzleStrokeWidth = 1.5,
     this.onSuccess,
     this.onFail,
     this.onClose,
@@ -78,11 +93,20 @@ class SlideVerifyView extends StatefulWidget {
   /// Delay before automatically popping the route on success.
   final Duration autoDismissDelay;
 
-  /// Asset path for the puzzle piece mask image.
-  final String maskImageAsset;
+  /// The background image provider to be verified.
+  final ImageProvider imageProvider;
 
-  /// Asset path for the background puzzle image.
-  final String bgImageAsset;
+  /// The style/shape of the puzzle piece ([PuzzleStyle.puzzle], [PuzzleStyle.square], [PuzzleStyle.circle]).
+  final PuzzleStyle puzzleStyle;
+
+  /// The size (width/height) of the puzzle piece in logical pixels.
+  final int? puzzleSize;
+
+  /// The color of the stroke around the puzzle piece.
+  final Color puzzleStrokeColor;
+
+  /// The width of the stroke around the puzzle piece.
+  final double puzzleStrokeWidth;
 
   /// Callback invoked when the user successfully solves the puzzle.
   /// Passes the time taken in seconds.
@@ -107,8 +131,11 @@ class SlideVerifyView extends StatefulWidget {
     double tolerance = 5.0,
     bool autoDismiss = true,
     Duration autoDismissDelay = const Duration(seconds: 1),
-    String maskImageAsset = 'packages/captcha_view/assets/images/3.0x/ic_puzzle.png',
-    String bgImageAsset = 'packages/captcha_view/assets/images/3.0x/ic_verify_bg.jpeg',
+    required ImageProvider imageProvider,
+    PuzzleStyle puzzleStyle = PuzzleStyle.puzzle,
+    int? puzzleSize,
+    Color puzzleStrokeColor = Colors.black,
+    double puzzleStrokeWidth = 1.5,
     ValueChanged<double>? onSuccess,
     VoidCallback? onFail,
     VoidCallback? onClose,
@@ -128,8 +155,11 @@ class SlideVerifyView extends StatefulWidget {
           tolerance: tolerance,
           autoDismiss: autoDismiss,
           autoDismissDelay: autoDismissDelay,
-          maskImageAsset: maskImageAsset,
-          bgImageAsset: bgImageAsset,
+          imageProvider: imageProvider,
+          puzzleStyle: puzzleStyle,
+          puzzleSize: puzzleSize,
+          puzzleStrokeColor: puzzleStrokeColor,
+          puzzleStrokeWidth: puzzleStrokeWidth,
           onSuccess: onSuccess,
           onFail: onFail,
           onClose: onClose,
@@ -143,7 +173,9 @@ class SlideVerifyView extends StatefulWidget {
 }
 
 class _SlideVerifyViewState extends State<SlideVerifyView> {
-  late Future<PuzzleAssets> _futureBuilder;
+  late Future<ui.Image> _imageFuture;
+  late int _blockSize;
+  late Offset _randomOffset;
 
   double _progress = 20;
   bool _result = false;
@@ -154,7 +186,7 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
   @override
   void initState() {
     super.initState();
-    _futureBuilder = _init(widget.width);
+    _imageFuture = _initImage(widget.width);
   }
 
   @override
@@ -163,41 +195,42 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
     super.dispose();
   }
 
-  Future<PuzzleAssets> _init(int puzzleWidth) async {
+  Future<ui.Image> _initImage(int puzzleWidth) async {
     final random = Random();
-
     final puzzleHeight = (puzzleWidth * 0.7).toInt();
-    final blockSize = puzzleWidth ~/ 6;
-    final randomOffset = Offset(
-      (random.nextInt(puzzleWidth ~/ 2) + blockSize).toDouble(),
+    _blockSize = widget.puzzleSize ?? (puzzleWidth ~/ 8);
+    _randomOffset = Offset(
+      (random.nextInt(puzzleWidth ~/ 2) + _blockSize).toDouble(),
       (random.nextInt(puzzleHeight ~/ 2) + 10).toDouble(),
     );
-    final mask = await _load(
-      widget.maskImageAsset,
-      targetWidth: blockSize,
-      targetHeight: blockSize,
-    );
-    final image = await _load(
-      widget.bgImageAsset,
+
+    return _loadImageFromProvider(
+      widget.imageProvider,
       targetWidth: puzzleWidth,
       targetHeight: puzzleHeight,
     );
-    return (mask, image, randomOffset);
   }
 
-  Future<ui.Image> _load(
-    String asset, {
+  Future<ui.Image> _loadImageFromProvider(
+    ImageProvider provider, {
     required int targetHeight,
     required int targetWidth,
   }) async {
-    final data = await rootBundle.load(asset);
-    final codec = await ui.instantiateImageCodec(
-      data.buffer.asUint8List(),
-      targetHeight: targetHeight,
-      targetWidth: targetWidth,
+    final config = ImageConfiguration(
+      size: Size(targetWidth.toDouble(), targetHeight.toDouble()),
     );
-    final frameInfo = await codec.getNextFrame();
-    return frameInfo.image;
+    final completer = Completer<ui.Image>();
+    final stream = provider.resolve(config);
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener((imageInfo, synchronousCall) {
+      stream.removeListener(listener);
+      completer.complete(imageInfo.image);
+    }, onError: (exception, stackTrace) {
+      stream.removeListener(listener);
+      completer.completeError(exception, stackTrace);
+    });
+    stream.addListener(listener);
+    return completer.future;
   }
 
   void _handleClose() {
@@ -213,8 +246,8 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
       color: Colors.transparent,
       child: SizedBox(
         width: widget.width.toDouble(),
-        child: FutureBuilder<PuzzleAssets>(
-          future: _futureBuilder,
+        child: FutureBuilder<ui.Image>(
+          future: _imageFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return SizedBox(
@@ -231,7 +264,7 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
                 ),
               );
             }
-            final (mask, image, offset) = snapshot.data!;
+            final image = snapshot.data!;
             _startDate ??= DateTime.now().millisecondsSinceEpoch;
             final elapsedSeconds = _endDate != null
                 ? (_endDate! - _startDate!) / 1000.0
@@ -274,11 +307,14 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
                   children: [
                     CustomPaint(
                       painter: PuzzlePainter(
-                        mask,
                         image,
                         _progress,
-                        offsetY: offset.dy,
-                        blockOffsetX: offset.dx,
+                        offsetY: _randomOffset.dy,
+                        blockOffsetX: _randomOffset.dx,
+                        blockSize: _blockSize.toDouble(),
+                        puzzleStyle: widget.puzzleStyle,
+                        strokeColor: widget.puzzleStrokeColor,
+                        strokeWidth: widget.puzzleStrokeWidth,
                       ),
                       size: Size(
                         image.width.toDouble(),
@@ -334,7 +370,7 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
                       final progress = value + 20;
                       setState(() => _progress = progress);
                       if (released) {
-                        final diff = (progress - offset.dx).abs();
+                        final diff = (progress - _randomOffset.dx).abs();
                         if (diff <= widget.tolerance) {
                           // Verification succeeded
                           final now = DateTime.now().millisecondsSinceEpoch;
@@ -373,11 +409,7 @@ class _SlideVerifyViewState extends State<SlideVerifyView> {
 }
 
 /// A slider that the user must drag to confirm an action.
-///
-/// The thumb follows the user's finger while dragging and animates back to
-/// the start when the drag ends, unless [onUpdate] returns `true`.
 class ConfirmationSlider extends StatefulWidget {
-  /// Creates a confirmation slider.
   const ConfirmationSlider({
     super.key,
     this.height = 70,
@@ -395,43 +427,18 @@ class ConfirmationSlider extends StatefulWidget {
     this.backgroundShape,
   });
 
-  /// The height of the slider.
   final double height;
-
-  /// The width of the slider.
   final double width;
-
-  /// The color of the slider track.
   final Color backgroundColor;
-
-  /// The color of the slider thumb.
   final Color foregroundColor;
-
-  /// The color of the icon on the slider thumb.
   final Color iconColor;
-
-  /// The shadow of the slider track.
   final BoxShadow? shadow;
-
-  /// Called when the position changes or the user releases the slider.
   final SliderUpdateCallback? onUpdate;
-
-  /// The icon shown on the slider thumb.
   final IconData icon;
-
-  /// The hint text shown in the middle of the slider.
   final String text;
-
-  /// The style of the hint text.
   final TextStyle? textStyle;
-
-  /// Called when the slider is dragged to the end.
   final VoidCallback onConfirmation;
-
-  /// The shape of the slider thumb.
   final BorderRadius? foregroundShape;
-
-  /// The shape of the slider track.
   final BorderRadius? backgroundShape;
 
   @override
@@ -557,82 +564,139 @@ class _ConfirmationSliderState extends State<ConfirmationSlider> {
   }
 }
 
-/// A painter that draws the puzzle captcha.
-///
-/// Draws the background image, marks the target position of the puzzle
-/// piece, and draws the piece itself at the current [progress].
+/// Helper function to generate puzzle paths for different styles.
+Path getPuzzlePath(Rect rect, PuzzleStyle style) {
+  switch (style) {
+    case PuzzleStyle.square:
+      return Path()
+        ..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(6.0)));
+    case PuzzleStyle.circle:
+      return Path()..addOval(rect);
+    case PuzzleStyle.puzzle:
+      final l = rect.left;
+      final t = rect.top;
+      final w = rect.width;
+      final h = rect.height;
+
+      final path = Path();
+      // Top edge
+      path.moveTo(l, t);
+      path.lineTo(l + w * 0.35, t);
+      path.lineTo(l + w * 0.65, t);
+      path.lineTo(l + w, t);
+
+      // Right edge with semicircular tab pointing outwards
+      path.lineTo(l + w, t + h * 0.35);
+      path.arcToPoint(
+        Offset(l + w, t + h * 0.65),
+        radius: Radius.circular(h * 0.2),
+        clockwise: false,
+      );
+      path.lineTo(l + w, t + h);
+
+      // Bottom edge with semicircular tab pointing downwards
+      path.lineTo(l + w * 0.65, t + h);
+      path.arcToPoint(
+        Offset(l + w * 0.35, t + h),
+        radius: Radius.circular(w * 0.2),
+        clockwise: false,
+      );
+      path.lineTo(l, t + h);
+
+      // Left edge
+      path.lineTo(l, t);
+      path.close();
+      return path;
+  }
+}
+
+/// A painter that draws the puzzle captcha programmatically using [Path].
 class PuzzlePainter extends CustomPainter {
-  /// Creates a puzzle painter.
   PuzzlePainter(
-    this.mask,
     this.image,
     this.progress, {
     required this.offsetY,
     required this.blockOffsetX,
+    required this.blockSize,
+    required this.puzzleStyle,
+    required this.strokeColor,
+    required this.strokeWidth,
   });
 
-  /// The image of the puzzle piece.
-  final ui.Image mask;
-
-  /// The background image.
   final ui.Image image;
-
-  /// The current horizontal position of the puzzle piece.
   final double progress;
-
-  /// The vertical offset of the puzzle piece on the background.
   final double offsetY;
-
-  /// The horizontal offset of the puzzle piece on the background.
   final double blockOffsetX;
+  final double blockSize;
+  final PuzzleStyle puzzleStyle;
+  final Color strokeColor;
+  final double strokeWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..isAntiAlias = true
       ..filterQuality = FilterQuality.high;
+
+    // 1. Draw background image
     canvas.drawImage(image, Offset.zero, paint);
+
+    // Target hole rect & path
+    final targetRect = Rect.fromLTWH(blockOffsetX, offsetY, blockSize, blockSize);
+    final targetPath = getPuzzlePath(targetRect, puzzleStyle);
+
+    // 2. Draw background missing hole (dark overlay)
+    final holePaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.55)
+      ..isAntiAlias = true;
+    canvas.drawPath(targetPath, holePaint);
+
+    if (strokeWidth > 0 && strokeColor != Colors.transparent) {
+      final holeStrokePaint = Paint()
+        ..color = strokeColor.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..isAntiAlias = true;
+      canvas.drawPath(targetPath, holeStrokePaint);
+    }
+
+    // Draggable piece local path (at 0,0)
+    final localPieceRect = Rect.fromLTWH(0, 0, blockSize, blockSize);
+    final localPiecePath = getPuzzlePath(localPieceRect, puzzleStyle);
+
+    // 3. Draw drop shadow for the draggable puzzle piece
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.45)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
+
+    canvas.save();
+    canvas.translate(progress + 2, offsetY + 3);
+    canvas.drawPath(localPiecePath, shadowPaint);
+    canvas.restore();
+
+    // 4. Draw the puzzle piece with fixed target texture content
+    canvas.save();
+    canvas.translate(progress, offsetY);
+    canvas.clipPath(localPiecePath);
     canvas.drawImage(
-      mask,
-      Offset(blockOffsetX, offsetY),
-      paint..color = Colors.black54,
-    );
-    final rect = Rect.fromLTWH(
-      progress,
-      offsetY,
-      mask.width.toDouble(),
-      mask.height.toDouble(),
-    );
-
-    canvas.saveLayer(rect, paint..color = Colors.white);
-    final maskRect = Rect.fromLTWH(
-      0,
-      0,
-      mask.width.toDouble(),
-      mask.height.toDouble(),
-    );
-    canvas.drawImageRect(mask, maskRect, rect, paint);
-
-    // Image
-    final offsetRect = Rect.fromLTWH(
-      progress - blockOffsetX,
-      0,
-      image.width.toDouble(),
-      image.height.toDouble(),
-    );
-    final imageRect = Rect.fromLTWH(
-      0,
-      0,
-      image.width.toDouble(),
-      image.height.toDouble(),
-    );
-    canvas.drawImageRect(
       image,
-      imageRect,
-      offsetRect,
-      paint..blendMode = BlendMode.srcIn,
+      Offset(-blockOffsetX, -offsetY),
+      paint,
     );
     canvas.restore();
+
+    // 5. Draw stroke/border around the draggable puzzle piece
+    if (strokeWidth > 0 && strokeColor != Colors.transparent) {
+      final strokePaint = Paint()
+        ..color = strokeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..isAntiAlias = true;
+      canvas.save();
+      canvas.translate(progress, offsetY);
+      canvas.drawPath(localPiecePath, strokePaint);
+      canvas.restore();
+    }
   }
 
   @override
@@ -640,7 +704,10 @@ class PuzzlePainter extends CustomPainter {
     return oldDelegate.progress != progress ||
         oldDelegate.offsetY != offsetY ||
         oldDelegate.blockOffsetX != blockOffsetX ||
-        oldDelegate.mask != mask ||
-        oldDelegate.image != image;
+        oldDelegate.blockSize != blockSize ||
+        oldDelegate.puzzleStyle != puzzleStyle ||
+        oldDelegate.image != image ||
+        oldDelegate.strokeColor != strokeColor ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }

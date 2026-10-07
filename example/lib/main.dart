@@ -43,11 +43,15 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _showSlideVerifyDialog() async {
+  Future<void> _showSlideVerifyDialog(PuzzleStyle style) async {
     final verified = await SlideVerifyView.show(
       context,
-      title: 'Security Check',
+      title: 'Security Check (${style.name.toUpperCase()})',
       sliderText: 'Slide to match the puzzle piece',
+      imageProvider: const NetworkImage('https://picsum.photos/300/210'),
+      puzzleStyle: style,
+      puzzleStrokeColor: Colors.black54,
+      puzzleStrokeWidth: 1.5,
       onSuccess: (seconds) {
         debugPrint('Verification succeeded in $seconds seconds');
       },
@@ -61,34 +65,6 @@ class _HomePageState extends State<HomePage> {
       SnackBar(
         content: Text(
           verified == true ? 'Verification Passed!' : 'Verification Cancelled',
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openSlideVerifyPage() async {
-    final verified = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: const Text('Slide Verify Route')),
-          body: const Center(
-            child: SlideVerifyView(
-              title: 'Please complete verification',
-              sliderText: 'Drag slider right to verify',
-            ),
-          ),
-        ),
-      ),
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          verified == true ? 'Verification Passed!' : 'Verification Failed',
         ),
       ),
     );
@@ -113,9 +89,9 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 12),
               CaptchaView(
-                text: _captchaText,
+                text: _captchaTestText(_captchaText),
                 lineColors: CaptchaView.rainbowColors,
-                lineCount: 6,
+                lineCount: 0,
                 width: 280,
                 height: 50,
                 onTap: _refreshCaptcha,
@@ -138,14 +114,14 @@ class _HomePageState extends State<HomePage> {
               ),
               const Divider(height: 48),
               const Text(
-                'Slide Puzzle Captcha',
+                'Slide Puzzle Captcha (Multiple Styles)',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _showSlideVerifyDialog,
-                icon: const Icon(Icons.security),
-                label: const Text('Show Slide Verification Dialog'),
+                onPressed: () => _showSlideVerifyDialog(PuzzleStyle.puzzle),
+                icon: const Icon(Icons.extension),
+                label: const Text('Jigsaw Puzzle Style'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
@@ -154,11 +130,23 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 12),
-              FilledButton.tonalIcon(
-                onPressed: _openSlideVerifyPage,
-                icon: const Icon(Icons.open_in_new),
-                label: const Text('Open Slide Verification Route'),
-                style: FilledButton.styleFrom(
+              ElevatedButton.icon(
+                onPressed: () => _showSlideVerifyDialog(PuzzleStyle.square),
+                icon: const Icon(Icons.square_outlined),
+                label: const Text('Square Rounded Style'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () => _showSlideVerifyDialog(PuzzleStyle.circle),
+                icon: const Icon(Icons.circle_outlined),
+                label: const Text('Circle Style'),
+                style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 12,
@@ -171,4 +159,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  String _captchaTestText(String t) => t;
 }
