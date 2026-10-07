@@ -1,3 +1,7 @@
+## [1.0.1] - 2025-02-23
+
+* Updated REAME.md.
+
 ## [1.0.0] - 2025-02-23
 
 * Added full multi-platform support (Android, iOS, Web, macOS, Windows, Linux).

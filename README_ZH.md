@@ -37,7 +37,7 @@
 
 ```yaml
 dependencies:
-  captcha_view: ^1.0.0
+  captcha_view: ^1.0.1
 ```
 
 或通过命令行运行：
