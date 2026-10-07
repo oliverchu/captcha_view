@@ -4,7 +4,7 @@
 * Added pure vector programmatic puzzle styles (`PuzzleStyle.puzzle`, `PuzzleStyle.square`, `PuzzleStyle.circle`) - zero asset dependencies required.
 * Added custom `imageProvider` support for background puzzle verification.
 * Added puzzle piece stroke customization (`puzzleStrokeColor`, `puzzleStrokeWidth`) and 3D drop shadow.
-* Optimized text captcha disturbance lines with smooth Bézier watermark curves (`CaptchaMaskPainter`).
+* Optimized text captcha disturbance lines with smooth Bézier watermark curves (`CaptchaMaskPainter`) and stabilized rendering to prevent jumping on hover/rebuilds.
 * Added comprehensive Chinese documentation (`README_ZH.md`) and English/Chinese language toggle links.
 
 ## [0.2.0] - 2025-02-23
