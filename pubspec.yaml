@@ -2,7 +2,7 @@ name: captcha_view
 description: >-
   A customizable Flutter package providing text captchas with distorted characters
   and slide-to-verify puzzle captchas.
-version: 0.2.0
+version: 1.0.0
 homepage: https://github.com/oliverchu/captcha_view
 repository: https://github.com/oliverchu/captcha_view
 issue_tracker: https://github.com/oliverchu/captcha_view/issues

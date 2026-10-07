@@ -1,3 +1,12 @@
+## [1.0.0] - 2025-02-23
+
+* Added full multi-platform support (Android, iOS, Web, macOS, Windows, Linux).
+* Added pure vector programmatic puzzle styles (`PuzzleStyle.puzzle`, `PuzzleStyle.square`, `PuzzleStyle.circle`) - zero asset dependencies required.
+* Added custom `imageProvider` support for background puzzle verification.
+* Added puzzle piece stroke customization (`puzzleStrokeColor`, `puzzleStrokeWidth`) and 3D drop shadow.
+* Optimized text captcha disturbance lines with smooth Bézier watermark curves (`CaptchaMaskPainter`).
+* Added comprehensive Chinese documentation (`README_ZH.md`) and English/Chinese language toggle links.
+
 ## [0.2.0] - 2025-02-23
 
 * Added `SlideVerifyView.show(context)` static helper for showing puzzle captchas in a dialog modal.
