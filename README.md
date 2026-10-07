@@ -4,6 +4,8 @@
 [![likes](https://img.shields.io/pub/likes/captcha_view)](https://pub.dev/packages/captcha_view/score)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+**English** | [简体中文](README_ZH.md)
+
 A lightweight and highly customizable Flutter package providing secure human verification widgets, including distorted text captchas and interactive slide-to-verify puzzle captchas.
 
 ## Features
